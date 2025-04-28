@@ -22,6 +22,7 @@ function run() {
       if (fs.existsSync(path.join(gitCacheDir, '.git'))) {
         console.log('Loading Git cache...');
         execSync(`cp -r "${path.join(gitCacheDir, '.git')}" "${githubWorkspace}/"`, { stdio: 'inherit' });
+        console.log('Git cache loaded.');
       } else {
         console.log('No Git cache found.');
       }
@@ -30,8 +31,23 @@ function run() {
       // Post-run phase: Save cache
       console.log('Saving Git cache...');
       fs.mkdirSync(gitCacheDir, { recursive: true });
-      execSync(`rm -rf "${path.join(gitCacheDir, '.git')}"`, { stdio: 'inherit' });
-      execSync(`cp -r "${path.join(githubWorkspace, '.git')}" "${gitCacheDir}/"`, { stdio: 'inherit' });
+
+      // rm -rf .git.new .git.old
+      execSync(`rm -rf "${path.join(gitCacheDir, '.git.old')}"`, { stdio: 'inherit' });
+      execSync(`rm -rf "${path.join(gitCacheDir, '.git.new')}"`, { stdio: 'inherit' });
+
+      // cp -r .git .git.new
+      execSync(`cp -r "${path.join(githubWorkspace, '.git')}" "${gitCacheDir}/.git.new"`, { stdio: 'inherit' });
+
+      // mv -f .git .git.old
+      execSync(`mv -f "${path.join(gitCacheDir, '.git')}" "${path.join(gitCacheDir, '.git.old')}"`, { stdio: 'inherit' });
+
+      // mv -f .git.new .git
+      execSync(`mv -f "${path.join(gitCacheDir, '.git.new')}" "${path.join(gitCacheDir, '.git')}"`, { stdio: 'inherit' });
+
+      // rm -rf .git.old
+      execSync(`rm -rf "${path.join(gitCacheDir, '.git.old')}"`, { stdio: 'inherit' });
+      console.log('Git cache saved.');
     }
 
   } catch (error) {
